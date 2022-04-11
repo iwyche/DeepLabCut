@@ -609,10 +609,7 @@ class TrackletStitcher:
         return triplets
 
     def build_graph(
-        self,
-        nodes=None,
-        max_gap=None,
-        weight_func=None,
+        self, nodes=None, max_gap=None, weight_func=None,
     ):
         if nodes is None:
             nodes = self.tracklets
@@ -1133,15 +1130,18 @@ def stitch_tracklets(
         deeplabcut.utils.auxiliaryfunctions.attempttomakefolder(dest)
         vname = Path(video).stem
 
-        feature_dict_path = os.path.join(videofolder, vname + DLCscorer + "_bpt_features.pickle")
+        feature_dict_path = os.path.join(
+            videofolder, vname + DLCscorer + "_bpt_features.pickle"
+        )
         # should only exist one
         if transformer_checkpoint:
             import dbm
+
             try:
-                feature_dict = shelve.open(feature_dict_path, flag='r')
+                feature_dict = shelve.open(feature_dict_path, flag="r")
             except dbm.error:
                 raise FileNotFoundError(
-                    f'{feature_dict_path} does not exist. Did you run transformer_reID()?'
+                    f"{feature_dict_path} does not exist. Did you run transformer_reID()?"
                 )
 
         dataname = os.path.join(dest, vname + DLCscorer + ".h5")
@@ -1177,7 +1177,9 @@ def stitch_tracklets(
             stitcher.stitch()
             if transformer_checkpoint:
                 stitcher.write_tracks(
-                    output_name=output_name, animal_names=animal_names, suffix="transformer"
+                    output_name=output_name,
+                    animal_names=animal_names,
+                    suffix="transformer",
                 )
             else:
                 stitcher.write_tracks(

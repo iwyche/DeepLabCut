@@ -69,7 +69,7 @@ def train_tracking_transformer(
     ckpt_folder="",
 ):
     npy_list = []
-    #TODO: use Videos = auxiliaryfunctions.Getlistofvideos(videos, videotype)
+    # TODO: use Videos = auxiliaryfunctions.Getlistofvideos(videos, videotype)
     for video in videos:
         videofolder = str(Path(video).parents[0])
         video_name = Path(video).stem

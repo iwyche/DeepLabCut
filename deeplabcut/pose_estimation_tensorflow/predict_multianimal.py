@@ -99,7 +99,9 @@ def extract_bpt_feature_from_video(
                 extra_dict,
             )
         else:
-            raise NotImplementedError("Not implemented yet, please raise an GitHub issue if you need this.")
+            raise NotImplementedError(
+                "Not implemented yet, please raise an GitHub issue if you need this."
+            )
 
 
 def AnalyzeMultiAnimalVideo(

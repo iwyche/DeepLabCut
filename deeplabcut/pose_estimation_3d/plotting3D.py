@@ -246,7 +246,9 @@ def create_labeled_video_3d(
 
             df_3d = pd.read_hdf(triangulate_file)
             try:
-                num_animals = df_3d.columns.get_level_values("individuals").unique().size
+                num_animals = (
+                    df_3d.columns.get_level_values("individuals").unique().size
+                )
             except KeyError:
                 num_animals = 1
 
@@ -264,21 +266,19 @@ def create_labeled_video_3d(
             )
 
             # Format data
-            mask2d = df_cam1.columns.get_level_values('bodyparts').isin(bodyparts2plot)
+            mask2d = df_cam1.columns.get_level_values("bodyparts").isin(bodyparts2plot)
             xy1 = df_cam1.loc[:, mask2d].to_numpy().reshape((len(df_cam1), -1, 3))
             visible1 = xy1[..., 2] >= pcutoff
             xy1[~visible1] = np.nan
             xy2 = df_cam2.loc[:, mask2d].to_numpy().reshape((len(df_cam1), -1, 3))
             visible2 = xy2[..., 2] >= pcutoff
             xy2[~visible2] = np.nan
-            mask = df_3d.columns.get_level_values('bodyparts').isin(bodyparts2plot)
+            mask = df_3d.columns.get_level_values("bodyparts").isin(bodyparts2plot)
             xyz = df_3d.loc[:, mask].to_numpy().reshape((len(df_3d), -1, 3))
             xyz[~(visible1 & visible2)] = np.nan
 
-            bpts = df_3d.columns.get_level_values('bodyparts')[mask][::3]
-            links = make_labeled_video.get_segment_indices(
-                bodyparts2connect, bpts,
-            )
+            bpts = df_3d.columns.get_level_values("bodyparts")[mask][::3]
+            links = make_labeled_video.get_segment_indices(bodyparts2connect, bpts,)
             ind_links = tuple(zip(*links))
 
             if color_by == "bodypart":

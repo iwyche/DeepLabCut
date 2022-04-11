@@ -319,8 +319,9 @@ def write_pickle(filename, data):
         pickle.dump(data, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
 
-def Getlistofvideos(videos: typing.Union[typing.List[str], str],
-                    videotype: typing.Optional[str] = None) -> typing.List[str]:
+def Getlistofvideos(
+    videos: typing.Union[typing.List[str], str], videotype: typing.Optional[str] = None
+) -> typing.List[str]:
     """ Returns list of videos of videotype "videotype" in
     folder videos or for list of videos.
 
@@ -338,13 +339,14 @@ def Getlistofvideos(videos: typing.Union[typing.List[str], str],
     if isinstance(videos, str):
         videos = [videos]
 
-
     if [os.path.isdir(i) for i in videos] == [True]:  # checks if input is a directory
         """
         Returns all the videos in the directory.
         """
         if videotype is None:
-            raise ValueError('When given a directory of videos, must be given a videotype')
+            raise ValueError(
+                "When given a directory of videos, must be given a videotype"
+            )
 
         from random import shuffle
 
@@ -354,12 +356,14 @@ def Getlistofvideos(videos: typing.Union[typing.List[str], str],
         # make list of full paths
         videos = [os.path.join(videofolder, fn) for fn in os.listdir(videofolder)]
 
-        shuffle(videos) # this is useful so multiple nets can be used to analyze simultaneously
+        shuffle(
+            videos
+        )  # this is useful so multiple nets can be used to analyze simultaneously
 
     # if not given a videotype and given a list of files, use empty string
     # ( 'file.mp4'.endswith('')  == True )
     if videotype is None:
-        videotype = ''
+        videotype = ""
 
     # filter list of videos
     videos = [
@@ -789,9 +793,7 @@ def find_next_unlabeled_folder(config_path, verbose=False):
     cfg = read_config(config_path)
     base_folder = Path(os.path.join(cfg["project_path"], "labeled-data"))
     h5files = sorted(
-        base_folder.rglob("*.h5"),
-        key=lambda p: p.lstat().st_mtime,
-        reverse=True,
+        base_folder.rglob("*.h5"), key=lambda p: p.lstat().st_mtime, reverse=True,
     )
     folders = sorted(f for f in base_folder.iterdir() if f.is_dir())
     most_recent_folder = h5files[0].parent

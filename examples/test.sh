@@ -6,7 +6,7 @@ rm -r OUT
 cd ..
 pip uninstall deeplabcut
 python3 setup.py sdist bdist_wheel
-pip install dist/deeplabcut-2.2.1rc1-py3-none-any.whl
+pip install dist/deeplabcut-2.2.1-py3-none-any.whl
 
 cd examples
 
@@ -17,3 +17,4 @@ python3 testscript_multianimal.py
 
 #python3 testscript_openfielddata_netcomparison.py
 #python3 testscript_openfielddata_augmentationcomparison.py
+python3 testscript_transreid.py

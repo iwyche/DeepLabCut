@@ -268,6 +268,7 @@ def LoadMetadata3d(metadatafilename):
         metadata = pickle.load(f)
         return metadata
 
+
 def _reconstruct_tracks_as_tracklets(df):
     """
     Parameters:
@@ -299,6 +300,7 @@ def _associate_paired_view_tracks(tracklets1, tracklets2, F):
         Fundamental matrix between cam1 and cam2
     """
     from scipy.optimize import linear_sum_assignment
+
     # Initialize costs matrix
     costs = np.zeros([len(tracklets1), len(tracklets2)])
 
@@ -315,7 +317,7 @@ def _associate_paired_view_tracks(tracklets1, tracklets2, F):
             # cost for any point in time of t1 being the same
             # any point in time of t2
             cost = np.abs(np.nansum(np.matmul(_t1, F) * _t2, axis=2))
-            
+
             # Get average cost of the entire track
             cost = cost.mean()
             costs[i, j] = cost

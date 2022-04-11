@@ -693,15 +693,27 @@ def ExtractFramesbasedonPreselection(
             )
             if isinstance(data, pd.DataFrame):
                 df = data.loc[frames2pick]
-                df.index = pd.MultiIndex.from_tuples([
-                    ("labeled-data", vname, "img" + str(index).zfill(strwidth) + ".png")
-                    for index in df.index
-                ])  # exchange index number by file names.
+                df.index = pd.MultiIndex.from_tuples(
+                    [
+                        (
+                            "labeled-data",
+                            vname,
+                            "img" + str(index).zfill(strwidth) + ".png",
+                        )
+                        for index in df.index
+                    ]
+                )  # exchange index number by file names.
             elif isinstance(data, dict):
-                idx = pd.MultiIndex.from_tuples([
-                    ("labeled-data", vname, "img" + str(index).zfill(strwidth) + ".png")
-                    for index in frames2pick
-                ])
+                idx = pd.MultiIndex.from_tuples(
+                    [
+                        (
+                            "labeled-data",
+                            vname,
+                            "img" + str(index).zfill(strwidth) + ".png",
+                        )
+                        for index in frames2pick
+                    ]
+                )
                 filename = os.path.join(
                     str(tmpfolder), f"CollectedData_{cfg['scorer']}.h5"
                 )
