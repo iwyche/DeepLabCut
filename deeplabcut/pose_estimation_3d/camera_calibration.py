@@ -140,10 +140,6 @@ def calibrate_cameras(config, cbrow=8, cbcol=6, calibrate=False, alpha=0.4):
                     corners = cv2.cornerSubPix(
                         gray, corners, (11, 11), (-1, -1), criteria
                     )
-                    
-                    if '1' in cam:
-                        corners=np.fliplr(corners)
-                    
                     imgpoints[cam].append(corners)
                     # Draw the corners and store the images
                     img = cv2.drawChessboardCorners(img, (cbcol, cbrow), corners, ret)
