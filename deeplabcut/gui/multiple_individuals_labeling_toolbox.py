@@ -160,7 +160,7 @@ class ImagePanel(BasePanel):
                 cIdx = cIdx / 255
                 color = cmap(cIdx, bytes=True)[:-1]
                 color = tuple([int(x) for x in color])
-                drawImage = cv2.line(drawImage, (x0, y0), (x1, y1), color, 1)
+                drawImage = cv2.line(drawImage, (x0, y0), (x1, y1), color, 1, lineType=cv2.LINE_AA)
         return drawImage
 
     def drawplot(self, img, img_name, itr, index, bodyparts, cmap, keep_view=False):
