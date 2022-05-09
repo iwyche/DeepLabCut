@@ -396,8 +396,8 @@ class MainFrame(BaseFrame):
         )
             
         self.buttonCounter = MainFrame.plot(self, self.img)
-        self.cidClick = self.canvas.mpl_connect("button_press_event", self.onClick)
-        self.canvas.mpl_connect("button_release_event", self.onButtonRelease)
+        # self.cidClick = self.canvas.mpl_connect("button_press_event", self.onClick)
+        # self.canvas.mpl_connect("button_release_event", self.onButtonRelease)
     
     ###############################################################################################################################
     # BUTTONS FUNCTIONS FOR HOTKEYS
