@@ -45,7 +45,7 @@ class ImagePanel(BasePanel):
         self.sourceCam = sourceCam
         self.toolbar = None
 
-    def retrieveData_and_computeEpLines(self, img, imNum):
+    def retrieveData_and_computeEpLines(self, img, imNum, partIndex):
 
         # load labeledPoints and fundamental Matrix
 
@@ -83,6 +83,7 @@ class ImagePanel(BasePanel):
 
             cfg = auxiliaryfunctions.read_config(self.config)
             scorer = cfg["scorer"]
+            parts=cfg["bodyparts"]
 
             try:
                 dataFrame = pd.read_hdf(
@@ -94,6 +95,8 @@ class ImagePanel(BasePanel):
                     "source camera images have not yet been labeled, or you have opened this folder in the wrong mode!"
                 )
                 return None, None, None
+            
+            dataFrame=dataFrame[scorer][parts[partIndex]]
 
             # Find offset terms for drawing epipolar Lines
             # Get crop params for camera being labeled
@@ -163,7 +166,7 @@ class ImagePanel(BasePanel):
 
         return drawImage
 
-    def drawplot(self, img, img_name, itr, index, bodyparts, cmap, keep_view=False):
+    def drawplot(self, img, img_name, itr, index, partIndex, bodyparts, cmap, keep_view=False):
         xlim = self.axes.get_xlim()
         ylim = self.axes.get_ylim()
         self.axes.clear()
@@ -171,10 +174,10 @@ class ImagePanel(BasePanel):
         im = cv2.imread(img)[..., ::-1]
         colorIndex = np.linspace(np.max(im), np.min(im), len(bodyparts))
         # draw epipolar lines
-        epLines, sourcePts, offsets = self.retrieveData_and_computeEpLines(img, itr)
+        epLines, sourcePts, offsets = self.retrieveData_and_computeEpLines(img, itr, partIndex)
         if epLines is not None:
             im = self.drawEpLines(
-                im.copy(), epLines, sourcePts, offsets, colorIndex, cmap
+                im.copy(), epLines, sourcePts, offsets, np.asarray([colorIndex[partIndex]]), cmap
             )
         ax = self.axes.imshow(im, cmap=cmap)
         self.orig_xlim = self.axes.get_xlim()
@@ -270,6 +273,9 @@ class MainFrame(BaseFrame):
         vSplitter.SplitVertically(
             self.image_panel, self.choice_panel, sashPosition=self.gui_size[0] * 0.8
         )
+        
+        self.Bind(wx.EVT_RADIOBOX,self.reDraw)
+        
         vSplitter.SetSashGravity(1)
         self.widget_panel = WidgetPanel(topSplitter)
         topSplitter.SplitHorizontally(
@@ -361,7 +367,38 @@ class MainFrame(BaseFrame):
         # xlim and ylim have actually changed before turning zoom off
         self.prezoom_xlim = []
         self.prezoom_ylim = []
-
+        
+    #################################################################################################################################
+    # Redraw
+    def reDraw(self, event=None):
+        MainFrame.saveEachImage(self)
+        # self.updatedCoords = MainFrame.getLabels(self, self.iter)
+        # self.img = self.index[self.iter]
+        
+        img_name = Path(self.index[self.iter]).name
+        self.figure.delaxes(
+            self.figure.axes[1]
+        )  # Removes the axes corresponding to the colorbar
+        (
+            self.figure,
+            self.axes,
+            self.canvas,
+            self.toolbar,
+        ) = self.image_panel.drawplot(
+            self.img,
+            img_name,
+            self.iter,
+            self.index,
+            self.rdb.GetSelection(),
+            self.bodyparts,
+            self.colormap,
+            keep_view=self.view_locked,
+        )
+            
+        self.buttonCounter = MainFrame.plot(self, self.img)
+        self.cidClick = self.canvas.mpl_connect("button_press_event", self.onClick)
+        self.canvas.mpl_connect("button_release_event", self.onButtonRelease)
+    
     ###############################################################################################################################
     # BUTTONS FUNCTIONS FOR HOTKEYS
     def OnKeyPressed(self, event=None):
@@ -410,6 +447,7 @@ class MainFrame(BaseFrame):
                 img_name,
                 self.iter,
                 self.index,
+                self.rdb.GetSelection(),
                 self.bodyparts,
                 self.colormap,
                 keep_view=self.view_locked,
@@ -443,6 +481,7 @@ class MainFrame(BaseFrame):
             img_name,
             self.iter,
             self.index,
+            self.rdb.GetSelection(),
             self.bodyparts,
             self.colormap,
             keep_view=True,
@@ -543,7 +582,8 @@ class MainFrame(BaseFrame):
                 if self.rdb.GetSelection() < len(self.bodyparts) - 1:
                     self.rdb.SetSelection(self.rdb.GetSelection() + 1)
                 self.figure.canvas.draw()
-
+                self.reDraw(event=None)
+        
         self.canvas.mpl_disconnect(self.onClick)
         self.canvas.mpl_disconnect(self.onButtonRelease)
 
@@ -553,6 +593,8 @@ class MainFrame(BaseFrame):
         """
         if self.rdb.GetSelection() < len(self.bodyparts) - 1:
             self.rdb.SetSelection(self.rdb.GetSelection() + 1)
+        
+        self.reDraw(event=None)
 
     def previousLabel(self, event):
         """
@@ -560,6 +602,8 @@ class MainFrame(BaseFrame):
         """
         if self.rdb.GetSelection() > 0:
             self.rdb.SetSelection(self.rdb.GetSelection() - 1)
+            
+        self.reDraw(event=None)
 
     def browseDir(self, event):
         """
@@ -700,14 +744,14 @@ class MainFrame(BaseFrame):
         oldbodyparts2plot = list(oldBodyParts[np.sort(idx)])
         self.new_bodyparts = [x for x in self.bodyparts if x not in oldbodyparts2plot]
         # Checking if user added a new label
-        if not self.new_bodyparts:  # i.e. no new label
+        if not self.new_bodyparts:  # i.e. no new label 
             (
                 self.figure,
                 self.axes,
                 self.canvas,
                 self.toolbar,
             ) = self.image_panel.drawplot(
-                self.img, img_name, self.iter, self.index, self.bodyparts, self.colormap
+                self.img, img_name, self.iter, self.index, 0, self.bodyparts, self.colormap
             )
             self.axes.callbacks.connect("xlim_changed", self.onZoom)
             self.axes.callbacks.connect("ylim_changed", self.onZoom)
@@ -746,14 +790,14 @@ class MainFrame(BaseFrame):
                 index = pd.MultiIndex.from_tuples(self.relativeimagenames)
                 frame = pd.DataFrame(a, columns=cols, index=index)
                 self.dataFrame = pd.concat([self.dataFrame, frame], axis=1)
-
+            
             (
                 self.figure,
                 self.axes,
                 self.canvas,
                 self.toolbar,
             ) = self.image_panel.drawplot(
-                self.img, img_name, self.iter, self.index, self.bodyparts, self.colormap
+                self.img, img_name, self.iter, self.index, 0, self.bodyparts, self.colormap
             )
             self.axes.callbacks.connect("xlim_changed", self.onZoom)
             self.axes.callbacks.connect("ylim_changed", self.onZoom)
@@ -814,6 +858,7 @@ class MainFrame(BaseFrame):
                 img_name,
                 self.iter,
                 self.index,
+                self.rdb.GetSelection(),
                 self.bodyparts,
                 self.colormap,
                 keep_view=self.view_locked,
@@ -856,6 +901,7 @@ class MainFrame(BaseFrame):
             img_name,
             self.iter,
             self.index,
+            self.rdb.GetSelection(),
             self.bodyparts,
             self.colormap,
             keep_view=self.view_locked,
