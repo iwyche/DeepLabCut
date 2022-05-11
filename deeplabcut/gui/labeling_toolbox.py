@@ -44,8 +44,11 @@ class ImagePanel(BasePanel):
         self.config3d = config3d
         self.sourceCam = sourceCam
         self.toolbar = None
+        self.epLines = None
+        self.sourcePts = None
+        self.labelCam_offsets = None
 
-    def retrieveData_and_computeEpLines(self, img, imNum, partIndex):
+    def retrieveData_and_computeEpLines(self, img, imNum):
 
         # load labeledPoints and fundamental Matrix
 
@@ -95,8 +98,6 @@ class ImagePanel(BasePanel):
                     "source camera images have not yet been labeled, or you have opened this folder in the wrong mode!"
                 )
                 return None, None, None
-            
-            dataFrame=dataFrame[scorer][parts[partIndex]]
 
             # Find offset terms for drawing epipolar Lines
             # Get crop params for camera being labeled
@@ -139,6 +140,10 @@ class ImagePanel(BasePanel):
                 sourcePts, int(sourceCam_numInPair), fundMat
             )
             epLines_source2label.reshape(-1, 3)
+            
+            self.epLines = epLines_source2label
+            self.sourcePts = sourcePts
+            self.labelCam_offsets = labelCam_offsets
 
             return epLines_source2label, sourcePts, labelCam_offsets
 
@@ -146,7 +151,6 @@ class ImagePanel(BasePanel):
             return None, None, None
 
     def drawEpLines(self, lines, sourcePts, offsets, colorIndex, cmap):
-        # height, width, depth = drawImage.shape
         width=self.axes.get_xlim()[1]
         for line, pt, cIdx in zip(lines, sourcePts, colorIndex):
             if pt[0] > -1000:
@@ -163,11 +167,7 @@ class ImagePanel(BasePanel):
                 cIdx = cIdx / 255
                 color = cmap(cIdx, bytes=True)[:-1]
                 color = tuple([int(x)/255 for x in color])
-                # color = tuple([int(x) for x in color])
-                # drawImage = cv2.line(drawImage, (x0, y0), (x1, y1), color, 1, lineType=cv2.LINE_AA)
                 self.axes.plot((x0,x1),(y0,y1),color=color,linewidth=1)
-
-        # return drawImage
 
     def drawplot(self, img, img_name, itr, index, partIndex, bodyparts, cmap, keep_view=False):
         xlim = self.axes.get_xlim()
@@ -177,15 +177,11 @@ class ImagePanel(BasePanel):
         im = cv2.imread(img)[..., ::-1]
         colorIndex = np.linspace(np.max(im), np.min(im), len(bodyparts))
         # draw epipolar lines
-        epLines, sourcePts, offsets = self.retrieveData_and_computeEpLines(img, itr, partIndex)
-        # if epLines is not None:
-        #     im = self.drawEpLines(
-        #         im.copy(), epLines, sourcePts, offsets, np.asarray([colorIndex[partIndex]]), cmap
-        #     )
+        epLines, sourcePts, offsets = self.retrieveData_and_computeEpLines(img, itr)
         ax = self.axes.imshow(im, cmap=cmap)
         if epLines is not None:
             self.drawEpLines(
-                epLines, sourcePts, offsets, np.asarray([colorIndex[partIndex]]), cmap
+                np.asarray([epLines[partIndex]]), np.asarray([sourcePts[partIndex]]), offsets, np.asarray([colorIndex[partIndex]]), cmap
             )
         self.orig_xlim = self.axes.get_xlim()
         self.orig_ylim = self.axes.get_ylim()
@@ -378,39 +374,26 @@ class MainFrame(BaseFrame):
     #################################################################################################################################
     # Redraw
     def reDraw(self, event=None):
-        MainFrame.saveEachImage(self)
-        
-        # img_name = Path(self.index[self.iter]).name
-        # self.figure.delaxes(
-        #     self.figure.axes[1]
-        # )  # Removes the axes corresponding to the colorbar
-        # (
-        #     self.figure,
-        #     self.axes,
-        #     self.canvas,
-        #     self.toolbar,
-        # ) = self.image_panel.drawplot(
-        #     self.img,
-        #     img_name,
-        #     self.iter,
-        #     self.index,
-        #     self.rdb.GetSelection(),
-        #     self.bodyparts,
-        #     self.colormap,
-        #     keep_view=self.view_locked,
-        # )
-        
-        
-        self.axes.lines[-1].remove()
-        epLines, sourcePts, offsets = self.image_panel.retrieveData_and_computeEpLines(self.img, self.iter, self.rdb.GetSelection())
-        # im = cv2.imread(self.img)[..., ::-1]
-        colorIndex = np.linspace(255, 0, len(self.bodyparts))
-        if epLines is not None:
-            self.image_panel.drawEpLines(
-                epLines, sourcePts, offsets, np.asarray([colorIndex[self.rdb.GetSelection()]]), self.colormap
-            )
-        
-        self.buttonCounter = MainFrame.plot(self, self.img)
+        if self.image_panel.epLines is None:
+            epLines, sourcePts, offsets = self.image_panel.retrieveData_and_computeEpLines(self.img, self.iter, self.rdb.GetSelection())
+        else:
+            epLines=self.image_panel.epLines
+            sourcePts=self.image_panel.sourcePts
+            offsets=self.image_panel.labelCam_offsets
+            
+        if not self.image_panel.epLines is None:
+            MainFrame.saveEachImage(self)
+            
+            if self.axes.lines:
+                self.axes.lines[-1].remove()
+            
+            colorIndex = np.linspace(255, 0, len(self.bodyparts))
+            if epLines is not None:
+                self.image_panel.drawEpLines(
+                    np.asarray([epLines[self.rdb.GetSelection()]]), np.asarray([sourcePts[self.rdb.GetSelection()]]), offsets, np.asarray([colorIndex[self.rdb.GetSelection()]]), self.colormap
+                )
+            
+            self.figure.canvas.draw()
     
     ###############################################################################################################################
     # BUTTONS FUNCTIONS FOR HOTKEYS
