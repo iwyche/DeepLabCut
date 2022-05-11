@@ -86,7 +86,6 @@ class ImagePanel(BasePanel):
 
             cfg = auxiliaryfunctions.read_config(self.config)
             scorer = cfg["scorer"]
-            parts=cfg["bodyparts"]
 
             try:
                 dataFrame = pd.read_hdf(
