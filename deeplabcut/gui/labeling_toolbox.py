@@ -145,8 +145,9 @@ class ImagePanel(BasePanel):
         else:
             return None, None, None
 
-    def drawEpLines(self, drawImage, lines, sourcePts, offsets, colorIndex, cmap):
-        height, width, depth = drawImage.shape
+    def drawEpLines(self, lines, sourcePts, offsets, colorIndex, cmap):
+        # height, width, depth = drawImage.shape
+        width=self.axes.get_xlim()[1]
         for line, pt, cIdx in zip(lines, sourcePts, colorIndex):
             if pt[0] > -1000:
                 coeffs = line[0]
@@ -161,10 +162,12 @@ class ImagePanel(BasePanel):
                 )
                 cIdx = cIdx / 255
                 color = cmap(cIdx, bytes=True)[:-1]
-                color = tuple([int(x) for x in color])
-                drawImage = cv2.line(drawImage, (x0, y0), (x1, y1), color, 1, lineType=cv2.LINE_AA)
+                color = tuple([int(x)/255 for x in color])
+                # color = tuple([int(x) for x in color])
+                # drawImage = cv2.line(drawImage, (x0, y0), (x1, y1), color, 1, lineType=cv2.LINE_AA)
+                self.axes.plot((x0,x1),(y0,y1),color=color,linewidth=1)
 
-        return drawImage
+        # return drawImage
 
     def drawplot(self, img, img_name, itr, index, partIndex, bodyparts, cmap, keep_view=False):
         xlim = self.axes.get_xlim()
@@ -175,11 +178,15 @@ class ImagePanel(BasePanel):
         colorIndex = np.linspace(np.max(im), np.min(im), len(bodyparts))
         # draw epipolar lines
         epLines, sourcePts, offsets = self.retrieveData_and_computeEpLines(img, itr, partIndex)
-        if epLines is not None:
-            im = self.drawEpLines(
-                im.copy(), epLines, sourcePts, offsets, np.asarray([colorIndex[partIndex]]), cmap
-            )
+        # if epLines is not None:
+        #     im = self.drawEpLines(
+        #         im.copy(), epLines, sourcePts, offsets, np.asarray([colorIndex[partIndex]]), cmap
+        #     )
         ax = self.axes.imshow(im, cmap=cmap)
+        if epLines is not None:
+            self.drawEpLines(
+                epLines, sourcePts, offsets, np.asarray([colorIndex[partIndex]]), cmap
+            )
         self.orig_xlim = self.axes.get_xlim()
         self.orig_ylim = self.axes.get_ylim()
         divider = make_axes_locatable(self.axes)
@@ -372,32 +379,38 @@ class MainFrame(BaseFrame):
     # Redraw
     def reDraw(self, event=None):
         MainFrame.saveEachImage(self)
-        # self.updatedCoords = MainFrame.getLabels(self, self.iter)
-        # self.img = self.index[self.iter]
         
-        img_name = Path(self.index[self.iter]).name
-        self.figure.delaxes(
-            self.figure.axes[1]
-        )  # Removes the axes corresponding to the colorbar
-        (
-            self.figure,
-            self.axes,
-            self.canvas,
-            self.toolbar,
-        ) = self.image_panel.drawplot(
-            self.img,
-            img_name,
-            self.iter,
-            self.index,
-            self.rdb.GetSelection(),
-            self.bodyparts,
-            self.colormap,
-            keep_view=self.view_locked,
-        )
-            
+        # img_name = Path(self.index[self.iter]).name
+        # self.figure.delaxes(
+        #     self.figure.axes[1]
+        # )  # Removes the axes corresponding to the colorbar
+        # (
+        #     self.figure,
+        #     self.axes,
+        #     self.canvas,
+        #     self.toolbar,
+        # ) = self.image_panel.drawplot(
+        #     self.img,
+        #     img_name,
+        #     self.iter,
+        #     self.index,
+        #     self.rdb.GetSelection(),
+        #     self.bodyparts,
+        #     self.colormap,
+        #     keep_view=self.view_locked,
+        # )
+        
+        
+        self.axes.lines[-1].remove()
+        epLines, sourcePts, offsets = self.image_panel.retrieveData_and_computeEpLines(self.img, self.iter, self.rdb.GetSelection())
+        # im = cv2.imread(self.img)[..., ::-1]
+        colorIndex = np.linspace(255, 0, len(self.bodyparts))
+        if epLines is not None:
+            self.image_panel.drawEpLines(
+                epLines, sourcePts, offsets, np.asarray([colorIndex[self.rdb.GetSelection()]]), self.colormap
+            )
+        
         self.buttonCounter = MainFrame.plot(self, self.img)
-        # self.cidClick = self.canvas.mpl_connect("button_press_event", self.onClick)
-        # self.canvas.mpl_connect("button_release_event", self.onButtonRelease)
     
     ###############################################################################################################################
     # BUTTONS FUNCTIONS FOR HOTKEYS
