@@ -196,6 +196,7 @@ class ImagePanel(BasePanel):
             self.axes.set_ylim(ylim)
         if self.toolbar is None:
             self.toolbar = NavigationToolbar(self.canvas)
+            
         return (self.figure, self.axes, self.canvas, self.toolbar)
 
     def getColorIndices(self, img, bodyparts):
@@ -373,24 +374,24 @@ class MainFrame(BaseFrame):
     #################################################################################################################################
     # Redraw
     def reDraw(self, event=None):
+        epLines=None
         if self.image_panel.epLines is None:
-            epLines, sourcePts, offsets = self.image_panel.retrieveData_and_computeEpLines(self.img, self.iter, self.rdb.GetSelection())
+            epLines, sourcePts, offsets = self.image_panel.retrieveData_and_computeEpLines(self.img, self.iter)
         else:
             epLines=self.image_panel.epLines
             sourcePts=self.image_panel.sourcePts
             offsets=self.image_panel.labelCam_offsets
             
-        if not self.image_panel.epLines is None:
+        if epLines is not None:
             MainFrame.saveEachImage(self)
             
             if self.axes.lines:
                 self.axes.lines[-1].remove()
             
             colorIndex = np.linspace(255, 0, len(self.bodyparts))
-            if epLines is not None:
-                self.image_panel.drawEpLines(
-                    np.asarray([epLines[self.rdb.GetSelection()]]), np.asarray([sourcePts[self.rdb.GetSelection()]]), offsets, np.asarray([colorIndex[self.rdb.GetSelection()]]), self.colormap
-                )
+            self.image_panel.drawEpLines(
+                np.asarray([epLines[self.rdb.GetSelection()]]), np.asarray([sourcePts[self.rdb.GetSelection()]]), offsets, np.asarray([colorIndex[self.rdb.GetSelection()]]), self.colormap
+            )
             
             self.figure.canvas.draw()
     
