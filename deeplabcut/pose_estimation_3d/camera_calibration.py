@@ -169,8 +169,7 @@ def calibrate_cameras(config, cbrow=8, cbcol=6, calibrate=False, alpha=0.4):
         # Calibrating each camera
         for cam in cam_names:
             ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(
-                objpoints[cam], imgpoints[cam], img_shape[cam], None, None,
-                flags=cv2.CALIB_ZERO_TANGENT_DIST + cv2.CALIB_FIX_K1 + cv2.CALIB_FIX_K2 + cv2.CALIB_FIX_K3
+                objpoints[cam], imgpoints[cam], img_shape[cam], None, None
             )
 
             # Save the camera calibration result for later use (we won't use rvecs / tvecs)
@@ -392,25 +391,6 @@ def check_undistortion(config, cbrow=8, cbcol=6, plot=True):
                     os.path.join(str(path_undistort), filename + "_undistort.jpg"),
                     im_remapped1,
                 )
-                
-                
-                plt.imshow(im_remapped1)
-                fTmp, (axTmp1, axTmp2) = plt.subplots(1, 2, figsize=(20, 10))
-                for i in range(0, np.array(cam1_undistort).shape[1]):
-                    axTmp1.scatter(cam1_undistort[-1][i, 0, 0],
-                                cam1_undistort[-1][i, 0, 1],
-                                marker=markerType,
-                                s=markerSize,
-                                color=markerColor,
-                                alpha=alphaValue,)
-                    axTmp2.scatter(corners_origin1[i, 0, 0],
-                                corners_origin1[i, 0, 1],
-                                marker=markerType,
-                                s=markerSize,
-                                color=markerColor,
-                                alpha=alphaValue,)
-                
-                plt.show()
                 imgpoints_proj_undistort = []
 
             elif pair[1] in fname:
@@ -439,24 +419,6 @@ def check_undistortion(config, cbrow=8, cbcol=6, plot=True):
                     os.path.join(str(path_undistort), filename + "_undistort.jpg"),
                     im_remapped2,
                 )
-                
-                plt.imshow(im_remapped2)
-                fTmp, (axTmp1, axTmp2) = plt.subplots(1, 2, figsize=(20, 10))
-                for i in range(0, np.array(cam2_undistort).shape[1]):
-                    axTmp1.scatter(cam2_undistort[-1][i, 0, 0],
-                                cam2_undistort[-1][i, 0, 1],
-                                marker=markerType,
-                                s=markerSize,
-                                color=markerColor,
-                                alpha=alphaValue,)
-                    axTmp2.scatter(corners_origin2[i, 0, 0],
-                                corners_origin2[i, 0, 1],
-                                marker=markerType,
-                                s=markerSize,
-                                color=markerColor,
-                                alpha=alphaValue,)
-                
-                plt.show()
                 imgpoints_proj_undistort2 = []
 
         cam1_undistort = np.array(cam1_undistort)
