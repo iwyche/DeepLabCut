@@ -169,7 +169,8 @@ def calibrate_cameras(config, cbrow=8, cbcol=6, calibrate=False, alpha=0.4):
         # Calibrating each camera
         for cam in cam_names:
             ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(
-                objpoints[cam], imgpoints[cam], img_shape[cam], None, None
+                objpoints[cam], imgpoints[cam], img_shape[cam], None, None,
+                flags=cv2.CALIB_FIX_ASPECT_RATIO+cv2.CALIB_ZERO_TANGENT_DIST + cv2.CALIB_FIX_K1 + cv2.CALIB_FIX_K2 + cv2.CALIB_FIX_K3
             )
 
             # Save the camera calibration result for later use (we won't use rvecs / tvecs)
@@ -477,4 +478,4 @@ def check_undistortion(config, cbrow=8, cbcol=6, plot=True):
                 cfg_3d,
                 plot=True,
             )
-            auxiliaryfunctions.write_pickle("triangulate.pickle", triangulate)
+            auxiliaryfunctions.write_pickle(os.path.join(str(path_camera_matrix), "triangulate.pickle"), triangulate)
