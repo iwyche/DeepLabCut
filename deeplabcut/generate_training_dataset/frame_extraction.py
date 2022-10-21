@@ -433,9 +433,12 @@ def extract_frames(
         cams = cfg_3d["camera_names"]
         extCam_name = cams[extracted_cam]
         del cams[extracted_cam]
-        label_dirs = sorted(
+        label_dirs_all = sorted(
             glob.glob(os.path.join(labels_path, "*" + extCam_name + "*"))
         )
+        
+        match_dirs=[os.path.basename(v).split('.')[0] for v in videos]
+        label_dirs = [d for d in label_dirs_all if os.path.basename(d) in match_dirs]
 
         # select crop method
         crop_list = []
