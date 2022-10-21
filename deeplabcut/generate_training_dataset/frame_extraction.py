@@ -415,7 +415,12 @@ def extract_frames(
         config_file = Path(config).resolve()
         cfg = auxiliaryfunctions.read_config(config_file)
         print("Config file read successfully.")
-        videos = sorted(cfg["video_sets"].keys())
+        # videos = sorted(cfg["video_sets"].keys())
+        videos=[]
+        if videos_list is None:
+            videos = cfg.get("video_sets_original") or cfg["video_sets"]
+        else: #filter video_list by the ones in the config file
+            videos = [v for v in cfg["video_sets"] if v in videos_list]
         project_path = Path(config).parents[0]
         labels_path = os.path.join(project_path, "labeled-data/")
         video_dir = os.path.join(project_path, "videos/")
