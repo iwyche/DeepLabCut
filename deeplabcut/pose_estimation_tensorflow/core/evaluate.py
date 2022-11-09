@@ -902,8 +902,6 @@ def evaluate_network(
                             foldername = os.path.join(
                                 str(evaluationfolder),
                                 "LabeledImages_"
-                                + DLCscorer
-                                + "_"
                                 + Snapshots[snapindex],
                             )
                             auxiliaryfunctions.attempttomakefolder(foldername)
@@ -931,8 +929,6 @@ def evaluate_network(
                             foldername = os.path.join(
                                 str(evaluationfolder),
                                 "LabeledImages_"
-                                + DLCscorer
-                                + "_"
                                 + Snapshots[snapindex],
                             )
                             auxiliaryfunctions.attempttomakefolder(foldername)
