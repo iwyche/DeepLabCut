@@ -299,6 +299,7 @@ def triangulate(
                     scorer_name[cam_names[j]] = DLCscorer
                     run_triangulate = True
                     print(destfolder, vname, DLCscorer)
+                    suffix = tr_method_suffix
                     if filterpredictions:
                         filtering.filterpredictions(
                             config_2d,
@@ -309,11 +310,13 @@ def triangulate(
                             filtertype=filtertype,
                             destfolder=destfolder,
                         )
-                        dataname.append(
-                            os.path.join(
-                                destfolder, vname + DLCscorer + tr_method_suffix + "_filtered.h5"
-                            )
+                        suffix += "_filtered"
+                        
+                    dataname.append(
+                        os.path.join(
+                            destfolder, vname + DLCscorer + suffix + ".h5"
                         )
+                    )
 
         if run_triangulate:
             #        if len(dataname)>0:
